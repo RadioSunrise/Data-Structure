@@ -1,0 +1,447 @@
+package BST_AVL;
+
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Stack;
+
+public class BST_Test
+{
+    static class TreeNode
+    {
+        private int val;
+        TreeNode left;
+        TreeNode right;
+        int height;
+        public TreeNode(int val) {
+            this.val = val;
+            left = null;
+            right = null;
+            height = 0;
+        }
+        public int getVal() {
+            return val;
+        }
+
+        public void setVal(int val) {
+            this.val = val;
+        }
+        public static int getHeight(TreeNode node)
+        {
+            if(node == null)
+            {
+                return -1;
+            }
+            else
+            {
+                return node.height;
+            }
+        }
+        public static TreeNode BST_find(int key, TreeNode node)
+        {
+            if(node == null)
+            {
+                return null;
+            }
+            TreeNode temp = node;
+            while(temp != null)
+            {
+                if(key == temp.getVal())
+                {
+                    return temp;
+                }
+                else if(key < temp.getVal())
+                {
+                    temp = temp.left;
+                }
+                else
+                {
+                    temp = temp.right;
+                }
+            }
+            return null;
+        }
+        public static TreeNode BST_find_min(TreeNode node)
+        {
+            if(node == null)
+            {
+                return null;
+            }
+            TreeNode temp = node;
+            while (temp.left != null) //左子树不为空，一直往左
+            {
+                temp = temp.left;
+            }
+            return temp;
+        }
+        public static TreeNode BST_find_max(TreeNode node)
+        {
+            if(node == null)
+            {
+                return null;
+            }
+            TreeNode temp = node;
+            while (temp.right != null) //左子树不为空，一直往左
+            {
+                temp = temp.right;
+            }
+            return temp;
+        }
+        public static TreeNode Insert(int val, TreeNode node)
+        {
+            TreeNode temp = node;
+            //若树为空，生成一棵树然后返回
+            if(temp == null)
+            {
+                temp = new TreeNode(val);
+                temp.left = null;
+                temp.right = null;
+            }
+            else
+            {
+                if(val < temp.getVal())
+                {
+                    temp.left = Insert(val, temp.left); //返回子树根节点的方式递归
+                }
+                else if(val > temp.getVal())
+                {
+                    temp.right = Insert(val, temp.right);
+                }
+            }
+            return temp;
+        }
+        public static TreeNode Delete(int key, TreeNode node)
+        {
+            TreeNode temp = node;
+            if(node == null)
+            {
+                return node;
+            }
+            else if(key < temp.getVal()) //小，左子树递归
+            {
+                temp.left = Delete(key, temp.left);
+            }
+            else if(key > temp.getVal()) //大，右子树递归
+            {
+                temp.right = Delete(key, temp.right);
+            }
+            else // 找到了
+            {
+                if(temp.left != null && temp.right != null) //要删除的节点左右子树均不为空
+                {
+                    // 1. 找右子树中最小的节点，替换当前节点
+                    TreeNode right_min = BST_find_min(temp.right);
+                    temp.setVal(right_min.getVal()); // val值copy
+                    temp.right = Delete(temp.getVal(), temp.right); //把右子树的最小元素删掉
+                }
+                else //有一棵子树为空或者为叶子节点
+                {
+                    temp = (temp.left != null)? temp.left : temp.right;
+                }
+            }
+            return temp;
+        }
+        public static TreeNode AVL_Insert(int val, TreeNode node)
+        {
+            TreeNode temp = node;
+            //若树为空，生成一棵树然后返回
+            if(temp == null)
+            {
+                temp = new TreeNode(val);
+                temp.left = null;
+                temp.right = null;
+                temp.height = 0;
+            }
+            else if(val < temp.getVal())
+            {
+                temp.left = AVL_Insert(val, temp.left);
+                // 查看是否需要平衡
+                if(getHeight(temp.left) - getHeight(temp.right) >= 2)
+                {
+
+                    if(val < temp.left.getVal()) // 比左子树的val还小，证明在左子树的左边, LL单旋
+                    {
+                        temp = LL_Rotation(temp);
+                    }
+                    else if(val > temp.left.getVal()) //左子树的右边,LR旋转
+                    {
+
+                        temp = LR_Rotation(temp);
+                    }
+                }
+            }
+            else if(val > temp.getVal())
+            {
+                temp.right = AVL_Insert(val, temp.right);
+                // 是否需要调整
+                if(getHeight(temp.right) - getHeight(temp.left) >= 2)
+                {
+                    if(val > temp.right.getVal()) //右子树的右边，RR
+                    {
+                        temp = RR_Rotation(temp);
+                    }
+                    else if(val < temp.right.getVal()) //右子树的左边，RL
+                    {
+                        temp = RL_Rotation(temp);
+                    }
+                }
+            }
+            temp.height = Math.max(getHeight(temp.left),getHeight(temp.right)) + 1; // 更新高度
+            return temp;
+        }
+        public static TreeNode LL_Rotation(TreeNode A)
+        {
+            TreeNode B = A.left; //B为A的左子树
+            A.left = B.right; //B的右子树挂到A的左子树
+            B.right = A; //把A作为B的右子树
+            A.height = Math.max(getHeight(A.left), getHeight(A.right)) + 1;
+            B.height = Math.max(getHeight(B.left), getHeight(B.right)) + 1;
+            return B; //B变为根节点了
+        }
+        public static TreeNode RR_Rotation(TreeNode A)
+        {
+            TreeNode B = A.right; //B为A的右子树
+            A.right = B.left; //B的左子树挂到A的右子树
+            B.left = A; //把A作为B的左子树
+            A.height = Math.max(getHeight(A.left), getHeight(A.right)) + 1;
+            B.height = Math.max(getHeight(B.left), getHeight(B.right)) + 1;
+            return B; //B变为根节点了
+        }
+        public static TreeNode LR_Rotation(TreeNode A)
+        {
+            // 对左子树先RR单旋
+            A.left = RR_Rotation(A.left);
+            // 对本节点再LL单旋
+            A = LL_Rotation(A);
+            return A;
+        }
+        public static TreeNode RL_Rotation(TreeNode A)
+        {
+            // 对右子树先LL单旋
+            A.right = LL_Rotation(A.right);
+            // 对本节点再RR单旋
+            A = RR_Rotation(A);
+            return A;
+        }
+        public static void PreOrderTraversal(TreeNode node)
+        {
+            if (node == null) return ;
+            System.out.print(node.getVal() + " ");
+            PreOrderTraversal(node.left);
+            PreOrderTraversal(node.right);
+        }
+        public static void PreOrderTraversal_Iterate(TreeNode node)
+        {
+            Stack<TreeNode> s = new Stack<>();
+            TreeNode node1 = node;
+            while(node1 != null || !s.isEmpty())
+            {
+                while(node1 != null)
+                {
+                    s.push(node1);
+                    System.out.print(node1.getVal() + " "); // 遍历本节点
+                    node1 = node1.left;
+                }
+                if(!s.isEmpty())
+                {
+                    node1 = s.pop();
+                    node1 = node1.right;
+                }
+            }
+            System.out.println();
+        }
+        public static void InOrderTraversal(TreeNode node)
+        {
+            if (node == null) return ;
+            InOrderTraversal(node.left);
+            System.out.print(node.getVal() + " ");
+            InOrderTraversal(node.right);
+        }
+        public static void InOrderTraversal_Iterate(TreeNode node)
+        {
+            Stack<TreeNode> s = new Stack<>();
+            TreeNode node1 = node;
+            while(node1 != null || !s.isEmpty())
+            {
+                while(node1 != null)
+                {
+                    s.push(node1); // 中序遍历，先不处理本节点，压栈后遍历左子树
+                    node1 = node1.left; // 进入左子树
+                }
+                // 直到左子树为null
+                if (!s.isEmpty())
+                {
+                    node1 = s.pop(); // 出栈
+                    System.out.print(node1.getVal() + " ");
+                    node1 = node1.right; // 左、中遍历完了，遍历右子树
+                }
+            }
+            System.out.println();
+        }
+        public static void PostOrderTraversal(TreeNode node)
+        {
+            if (node == null) return ;
+            PostOrderTraversal(node.left);
+            PostOrderTraversal(node.right);
+            System.out.print(node.getVal() + " ");
+        }
+        /*public static void PostOrderTraversal_Iterate(TreeNode node)
+        {
+            Stack<TreeNode> s = new Stack<>();
+            TreeNode node1 = node;
+            while(node1 != null || !s.isEmpty())
+            {
+                while(node1 != null)
+                {
+                    if(node1.visit == 0) //第一次访问该节点
+                    {
+                        // System.out.println("Now node1 is " + node1.getVal() + ", and visit is " + node1.visit);
+                        node1.visit ++;
+                        s.push(node1);
+                    }
+                    node1 = node1.left; // 进入左子树
+                }
+                // 直到左子树为null
+                if (!s.isEmpty())
+                {
+                    node1 = s.pop(); // 出栈
+                    if(node1.visit == 2) //第三次碰到了
+                    {
+                        // System.out.println("Now node1 is " + node1.getVal() + ", and visit is " + node1.visit);
+                        System.out.print(node1.getVal() +" ");
+                        // node1 = null; // 左右子树均被访问过
+                    }
+                    else
+                    {
+                        // System.out.println("Now node1 is " + node1.getVal() + ", and visit is " + node1.visit);
+                        node1.visit ++;
+                        s.push(node1); //再次入栈，相当于没之前出栈，右子树没访问，还不能完全出栈
+                        node1 = node1.right;
+                    }
+
+                }
+            }
+            System.out.println();
+        }*/
+        public static void PostOrderTraversal_Iterate_2(TreeNode node)
+        {   // 左右子树顺序调换的先序遍历，即为后序遍历的逆序
+            Stack<TreeNode> s = new Stack<>();
+            Stack<TreeNode> s2 = new Stack<>(); // 输出用，保存
+            TreeNode node1 = node;
+            s.push(node1);
+            while(!s.isEmpty())
+            {
+                node1 = s.pop();
+                s2.push(node1); // s中出栈的放入s2
+                if(node1.left != null)
+                {
+                    s.push(node1.left);
+                }
+                if(node1.right != null)
+                {
+                    s.push(node1.right);
+                }
+            }
+            while(!s2.isEmpty())
+            {
+                node1 = s2.pop();
+                System.out.print(node1.getVal() + " ");
+            }
+            System.out.println();
+        }
+        public static void PostOrderTraversal_Iterate_3(TreeNode node)
+        {   // 左右子树顺序调换的先序遍历，即为后序遍历的逆序
+            Stack<TreeNode> s = new Stack<>();
+            Stack<TreeNode> s2 = new Stack<>(); // 输出用，保存
+            TreeNode node1 = node;
+            while(node1 != null || !s.isEmpty())
+            {
+                while(node1 != null)
+                {
+                    s.push(node1);
+                    //System.out.print(node1.getVal() + " "); // 遍历本节点
+                    s2.push(node1); //s2入栈
+                    node1 = node1.right;
+                }
+                if(!s.isEmpty())
+                {
+                    node1 = s.pop();
+                    node1 = node1.left;
+                }
+            }
+            while(!s2.isEmpty())
+            {
+                node1 = s2.pop();
+                System.out.print(node1.getVal() + " ");
+            }
+            System.out.println();
+        }
+        public static void LevelOrderTraversal(TreeNode node)
+        {
+            if(node == null) return;
+            Queue<TreeNode> q = new LinkedList<>();
+            TreeNode node1 = node;
+            q.add(node1);
+            while(!q.isEmpty())
+            {
+                int i = q.size();
+                while (i > 0)
+                {
+                    // 节点出队
+                    node1 = q.poll();
+                    System.out.print(node1.getVal() + " ");
+                    // 左
+                    if(node1.left != null)
+                    {
+                        q.add(node1.left);
+                    }
+                    // 右
+                    if(node1.right != null)
+                    {
+                        q.add(node1.right);
+                    }
+                    i--;
+                }
+                System.out.println();
+            }
+            System.out.println();
+        }
+    }
+    public static void main(String[] args)
+    {
+        /*TreeNode Bst = new TreeNode(30);
+        Bst = TreeNode.Insert(15, Bst);
+        Bst = TreeNode.Insert(41, Bst);
+        Bst = TreeNode.Insert(33, Bst);
+        Bst = TreeNode.Insert(50, Bst);
+        Bst = TreeNode.Insert(35, Bst);
+        TreeNode.LevelOrderTraversal(Bst);
+        Bst = TreeNode.Delete(30, Bst);
+        TreeNode.LevelOrderTraversal(Bst);*/
+
+        TreeNode AVL = null;
+        AVL = TreeNode.AVL_Insert(88, AVL);
+        AVL = TreeNode.AVL_Insert(70, AVL);
+        AVL = TreeNode.AVL_Insert(61, AVL);
+        AVL = TreeNode.AVL_Insert(96, AVL);
+        AVL = TreeNode.AVL_Insert(120, AVL);
+        AVL = TreeNode.AVL_Insert(90, AVL);
+        AVL = TreeNode.AVL_Insert(65, AVL);
+
+        System.out.println(AVL.getVal());
+
+        TreeNode.PreOrderTraversal(AVL);
+        System.out.println();
+        TreeNode.InOrderTraversal(AVL);
+
+    }
+}
+/*
+AVl insert test sample
+5
+88 70 61 96 120
+70
+
+7
+88 70 61 96 120 90 65
+88
+ */
