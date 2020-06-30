@@ -54,8 +54,8 @@ public class Reversing_Linked_List_Test
     {
         int total_reverse = 1; //反转多少段链表
         int count = 1; //链表反转内部计数
-        int save = head; //保存原链表的head
-        int save_2 = head;
+        int save = head; //保存原链表的head(上一段的head/反转后新末尾)
+        int save_2 = head; //(下一段的head/反转后新末尾)
         int temp; //反转过程保存中间next
         int new_head = head;
         int old_head = arr[head].next;
